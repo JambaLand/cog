@@ -1,0 +1,8 @@
+build:
+  gpu: false
+  python_version: "3.12"
+  python_packages:
+    - "replicate>=1.0.0"
+    - "requests>=2.28.0"
+
+predict: "predict.py:Predictor"
