@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElevenLabs Agent Widget - Wix</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px 30px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .widget-wrapper {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+            border: 2px dashed #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+            background: #fafafa;
+        }
+
+        elevenlabs-convai {
+            width: 100%;
+            max-width: 500px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .instructions {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-top: 30px;
+            border-radius: 8px;
+            text-align: left;
+        }
+
+        .instructions h3 {
+            color: #667eea;
+            margin-bottom: 12px;
+            font-size: 18px;
+        }
+
+        .instructions ol {
+            color: #555;
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+
+        .instructions li {
+            margin-bottom: 8px;
+        }
+
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 16px;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            margin-top: 15px;
+            line-height: 1.5;
+            text-align: left;
+        }
+
+        .copy-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 12px;
+            transition: background 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #5568d3;
+        }
+
+        .agent-status {
+            color: #27ae60;
+            font-size: 14px;
+            margin-top: 20px;
+            padding: 10px;
+            background: #d5f4e6;
+            border-radius: 6px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px 15px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .widget-wrapper {
+                padding: 15px;
+                margin: 20px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Agente Conversacional ElevenLabs</h1>
+        <p class="subtitle">Customer Support Agent</p>
+
+        <div class="widget-wrapper">
+            <elevenlabs-convai
+                agent-id="agent_0201kjywpmreevjtt20xac516ww5">
+            </elevenlabs-convai>
+        </div>
+
+        <div class="agent-status">
+            ✓ Agente conectado e pronto para usar<br>
+            <small>Clique no widget para iniciar uma conversa</small>
+        </div>
+
+        <div class="instructions">
+            <h3>📋 Como adicionar no seu site Wix:</h3>
+            <ol>
+                <li>No editor Wix, clique em <strong>"Adicionar"</strong> (+)</li>
+                <li>Procure por <strong>"HTML iFrame"</strong> ou <strong>"Incorporar código"</strong></li>
+                <li>Cole o código abaixo em uma das opções</li>
+                <li>Salve e pronto! 🎉</li>
+            </ol>
+
+            <div class="code-block">
+&lt;script src="https://elevenlabs.io/convai-widget/index.js" async&gt;&lt;/script&gt;
+&lt;elevenlabs-convai
+    agent-id="agent_0201kjywpmreevjtt20xac516ww5"&gt;
+&lt;/elevenlabs-convai&gt;</div>
+
+            <button class="copy-btn" onclick="copiarCodigo()">📋 Copiar Código</button>
+        </div>
+    </div>
+
+    <!-- Carregar o widget ElevenLabs -->
+    <script src="https://elevenlabs.io/convai-widget/index.js" async></script>
+
+    <script>
+        function copiarCodigo() {
+            const codigo = `<script src="https://elevenlabs.io/convai-widget/index.js" async><\/script>
+<elevenlabs-convai
+    agent-id="agent_0201kjywpmreevjtt20xac516ww5">
+</elevenlabs-convai>`;
+
+            navigator.clipboard.writeText(codigo).then(() => {
+                alert('✓ Código copiado! Cole no Wix em Adicionar > HTML iFrame');
+            }).catch(() => {
+                alert('Copie manualmente o código acima');
+            });
+        }
+    </script>
+</body>
+</html>
