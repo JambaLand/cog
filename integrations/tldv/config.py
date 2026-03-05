@@ -9,7 +9,7 @@ class TLDVConfig:
 
     # Chave de API do TLDV
     API_KEY: str = os.getenv(
-        "TLDV_API_KEY", "47319d54-86f2-4916-b47a-630138c9d235"
+        "TLDV_API_KEY", "b1116307-392b-4f4c-934c-bc4607338133"
     )
 
     # URL base da API
