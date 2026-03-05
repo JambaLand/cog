@@ -32,6 +32,45 @@ export TLDV_API_KEY="sua-chave-aqui"
 composio-toolrouter:setup
 ```
 
+## Cache
+
+A integração inclui um sistema de cache automático para melhorar a performance e reduzir o número de chamadas à API.
+
+### Uso com Cache
+
+```python
+from predict import TLDVPredictor
+from cache import CachedTLDVTools, MeetingCache
+
+predictor = TLDVPredictor()
+predictor.setup()
+
+# Criar cache com TTL de 1 hora
+cache = MeetingCache(ttl_seconds=3600)
+cached_tools = CachedTLDVTools(predictor.tools, cache)
+
+# Primeira chamada: faz requisição à API
+meetings = cached_tools.get_meetings(limit=5)
+
+# Segunda chamada: retorna do cache (sem chamada à API)
+meetings = cached_tools.get_meetings(limit=5)
+
+# Ver estatísticas do cache
+stats = cached_tools.cache_stats()
+print(f"Cache size: {stats['size']}")
+```
+
+### Controle de Cache
+
+```python
+# Limpar cache completamente
+cached_tools.clear_cache()
+
+# Limpar apenas entradas expiradas
+removed = cache.clear_expired()
+print(f"Removidas {removed} entradas expiradas")
+```
+
 ## Uso
 
 ### Exemplo 1: Listar Reuniões Gravadas
@@ -40,6 +79,7 @@ composio-toolrouter:setup
 from predict import TLDVPredictor
 
 predictor = TLDVPredictor()
+predictor.setup()
 meetings = predictor.get_meetings()
 ```
 

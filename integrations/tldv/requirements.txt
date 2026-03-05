@@ -3,3 +3,7 @@ composio-core>=0.1.0
 requests>=2.31.0
 pydantic>=1.10.0
 python-dotenv>=1.0.0
+
+# Testing dependencies
+pytest>=7.0.0
+pytest-cov>=4.0.0
