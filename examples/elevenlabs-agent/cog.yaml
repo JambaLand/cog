@@ -1,0 +1,6 @@
+build:
+  python_version: "3.11"
+  python_packages:
+    - "elevenlabs[pyaudio]>=0.2.0"
+
+predict: "predict.py:Predictor"
