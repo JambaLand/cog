@@ -32,6 +32,71 @@ export TLDV_API_KEY="sua-chave-aqui"
 composio-toolrouter:setup
 ```
 
+### 4. Notificações (Opcional)
+
+Configure notificações para Teams ou Google Calendar:
+
+**Microsoft Teams:**
+```bash
+export TEAMS_WEBHOOK_URL="https://outlook.webhook.office.com/..."
+```
+
+**Google Calendar:**
+```bash
+export GOOGLE_API_KEY="seu-api-key"
+export GOOGLE_CALENDAR_ID="seu-email@gmail.com"
+```
+
+## Notificações
+
+A integração inclui um sistema completo de notificações para enviar resumos para Teams e Google Calendar.
+
+### Enviar para Teams
+
+```python
+from notifications import NotificationManager
+from predict import TLDVPredictor
+
+predictor = TLDVPredictor()
+predictor.setup()
+
+summary = predictor.get_meeting_summary("meeting_001")
+
+manager = NotificationManager()
+results = manager.notify_meeting_summary(summary)
+# Resultado: Resumo formatado como Adaptive Card no Teams
+```
+
+### Criar Evento no Google Calendar
+
+```python
+from notifications import NotificationManager
+from predict import TLDVPredictor
+
+predictor = TLDVPredictor()
+predictor.setup()
+
+summary = predictor.get_meeting_summary("meeting_001")
+
+manager = NotificationManager()
+results = manager.notify_meeting_summary(summary)
+# Resultado: Novo evento criado no Google Calendar
+```
+
+### Enviar para Múltiplos Canais
+
+```python
+from notifications import NotificationManager
+
+manager = NotificationManager()  # Configura automaticamente
+
+# Listar provedores disponíveis
+print(manager.list_providers())  # ["teams", "google"]
+
+# Enviar para todos
+results = manager.notify_meeting_summary(summary)
+```
+
 ## Cache
 
 A integração inclui um sistema de cache automático para melhorar a performance e reduzir o número de chamadas à API.
