@@ -1,0 +1,2 @@
+# No additional requirements needed
+# The Cog SDK with TLDV extension is included in the wheel

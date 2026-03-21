@@ -1,0 +1,19 @@
+# TLDV Integration Example
+# This example demonstrates how to use the Cog TLDV extension
+# to integrate with the tl;dv API for meeting intelligence.
+
+build:
+  python_version: "3.11"
+  python_requirements: requirements.txt
+
+# The predictor to run
+predict: predict.py
+
+# Environment variables required for TLDV API access
+# Users need to provide their own TLDV_API_KEY
+environment:
+  - TLDV_API_KEY
+
+# Optional: Set concurrency limits
+concurrency:
+  max: 1
