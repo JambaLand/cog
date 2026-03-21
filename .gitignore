@@ -27,3 +27,7 @@ bin/*
 # Auto-generated version files from setuptools-scm
 python/cog/_version.py
 coglet/python/coglet/_version.py
+
+# Environment configuration files with sensitive data
+.env
+.env.local

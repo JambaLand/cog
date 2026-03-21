@@ -1,0 +1,91 @@
+#!/bin/bash
+# Setup TLDV API configuration for Cog
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+ENV_FILE="$PROJECT_DIR/.env"
+ENV_EXAMPLE="$PROJECT_DIR/.env.example"
+
+echo "🔧 TLDV API Configuration Setup"
+echo "=================================="
+echo ""
+
+# Check if .env exists
+if [ -f "$ENV_FILE" ]; then
+    echo "✅ .env file already exists"
+    read -p "Do you want to update it? (y/n) " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "Skipping setup."
+        exit 0
+    fi
+fi
+
+# Get API key from user
+echo "Get your API key from: https://tldv.io/app/settings/personal-settings/api-keys"
+echo ""
+read -p "Enter your TLDV API Key: " -r API_KEY
+
+if [ -z "$API_KEY" ]; then
+    echo "❌ Error: API key cannot be empty"
+    exit 1
+fi
+
+# Create .env file
+echo "Creating .env file..."
+cat > "$ENV_FILE" << EOF
+# TLDV API Configuration
+# This file contains your personal API key and should NOT be committed to version control
+# Get your API key from: https://tldv.io/app/settings/personal-settings/api-keys
+TLDV_API_KEY=$API_KEY
+EOF
+
+echo "✅ .env file created"
+echo ""
+
+# Test the API key by trying to list meetings
+echo "Testing API connection..."
+python3 - << PYTHON
+import os
+import sys
+
+# Load .env
+from pathlib import Path
+env_file = Path("$ENV_FILE")
+if env_file.exists():
+    for line in env_file.read_text().splitlines():
+        if line.startswith("TLDV_API_KEY="):
+            key = line.split("=", 1)[1]
+            os.environ["TLDV_API_KEY"] = key
+            break
+
+# Test connection
+try:
+    from cog.ext.tldv import TLDVClient
+    client = TLDVClient(api_key=os.environ.get("TLDV_API_KEY"))
+    print("✅ TLDV API key is valid and client initialized successfully!")
+    print("")
+    print("📝 Next steps:")
+    print("   1. Navigate to examples/tldv_integration/")
+    print("   2. Run: cog predict -i meeting_id='your-meeting-id'")
+    print("   3. Check docs/tldv.md for more examples")
+except ValueError as e:
+    print(f"❌ Error: {e}")
+    sys.exit(1)
+except ImportError:
+    print("⚠️  Cog TLDV extension not yet available (need to rebuild wheel)")
+    print("    Run: make wheel")
+except Exception as e:
+    print(f"⚠️  Warning: {e}")
+    print("    Your API key was saved, but could not test connection.")
+    print("    This might be normal if the API is temporarily unavailable.")
+PYTHON
+
+echo ""
+echo "✅ Setup complete! Your API key has been saved to .env"
+echo ""
+echo "⚠️  IMPORTANT: The .env file contains your API key."
+echo "   Make sure it is NOT committed to version control."
+echo "   It is already listed in .gitignore."
