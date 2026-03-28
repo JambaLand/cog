@@ -4,14 +4,18 @@
  */
 
 import { Composio } from "@composio/core";
-import { ClaudeAgentSDKProvider } from "@composio/claude-agent-sdk";
 import { createSdkMcpServer, query } from "@anthropic-ai/claude-agent-sdk";
 import * as readline from "readline";
+import SessionManager from "./session-manager";
 
-// Initialize Composio with Claude Agent SDK Provider
+// Initialize Composio
+const apiKey = process.env.COMPOSIO_API_KEY;
+if (!apiKey) {
+  throw new Error("COMPOSIO_API_KEY environment variable is required");
+}
+
 const composio = new Composio({
-  apiKey: process.env.COMPOSIO_API_KEY || "ak_hzjAGv-K2CeVW5DSjQ5_",
-  provider: new ClaudeAgentSDKProvider(),
+  apiKey: apiKey,
 });
 
 interface ConversationMessage {
@@ -24,22 +28,39 @@ class TLDVComposioAgent {
   private session: any;
   private customServer: any;
   private conversationHistory: ConversationMessage[] = [];
+  private sessionManager: SessionManager;
 
   constructor(externalUserId: string) {
     this.externalUserId = externalUserId;
+    this.sessionManager = new SessionManager();
   }
 
   async initialize(manageConnections: boolean = true): Promise<void> {
     console.log(`🚀 Inicializando TLDV + Composio Agent para ${this.externalUserId}...\n`);
 
     try {
-      // Create a tool router session with manual connection management
-      console.log("1️⃣  Criando sessão com Composio...");
+      // Tentar carregar sessão salva
+      console.log("1️⃣  Buscando sessão salva...");
+      const savedSession = this.sessionManager.loadSession(this.externalUserId);
+
+      if (savedSession) {
+        console.log(`✅ Sessão encontrada!`);
+        console.log(`   Session ID: ${savedSession.sessionId}`);
+        console.log(`   Autorizado em: ${new Date(savedSession.connectedAt).toLocaleString("pt-BR")}`);
+        console.log(`   Apps autorizados: ${savedSession.authorizedApps.join(", ")}\n`);
+      } else {
+        console.log("📝 Nenhuma sessão salva encontrada\n");
+      }
+
+      // Sempre criar/recuperar session properly da Composio
+      console.log(`📝 Recuperando sessão do Composio...`);
       this.session = await composio.create(this.externalUserId, {
         manageConnections: manageConnections,
       });
-      console.log(`✅ Sessão criada: ${this.session.id}`);
+      console.log(`✅ Sessão recuperada: ${this.session.id}`);
       console.log(`   Modo de conexão: ${manageConnections ? "Automático" : "Manual"}\n`);
+
+      console.log("2️⃣  Buscando ferramentas disponíveis...");
 
       // Get tools from the session
       console.log("2️⃣  Buscando ferramentas disponíveis...");
@@ -97,6 +118,23 @@ class TLDVComposioAgent {
       console.log(`✅ Conexão estabelecida com sucesso!`);
       console.log(`   ID da conta conectada: ${connectedAccount.id}`);
       console.log(`   Serviço: ${service}\n`);
+
+      // Salvar sessão autorizada para reutilização futura
+      console.log(`4️⃣  Salvando sessão autorizada...`);
+      const existingSession = this.sessionManager.loadSession(this.externalUserId);
+      const authorizedApps = existingSession?.authorizedApps || [];
+      if (!authorizedApps.includes(service)) {
+        authorizedApps.push(service);
+      }
+
+      this.sessionManager.saveSession({
+        sessionId: this.session.id,
+        externalUserId: this.externalUserId,
+        connectedAccountId: connectedAccount.id,
+        connectedAt: existingSession?.connectedAt || new Date().toISOString(),
+        authorizedApps: authorizedApps,
+      });
+      console.log(`✅ Sessão salva para reutilização automática!\n`);
     } catch (error) {
       console.error(`❌ Erro na autorização de ${service}:`, error);
       throw error;
@@ -210,18 +248,27 @@ async function main(): Promise<void> {
     // Initialize agent
     const agent = new TLDVComposioAgent(externalUserId);
 
+    // Check if we have a saved session
+    const sessionManager = new SessionManager();
+    const savedSession = sessionManager.loadSession(externalUserId);
+    const hasAuthorization = savedSession && savedSession.authorizedApps.includes("tldv");
+
     // Initialize with manual connection management
     console.log(`📋 Modo de autorização: ${manualAuth ? "MANUAL" : "AUTOMÁTICO"}\n`);
     await agent.initialize(manualAuth ? false : true);
 
-    // Se modo manual, pedir autorização do TLDV
-    if (manualAuth) {
+    // Se modo manual e não tem autorização salva, pedir autorização do TLDV
+    if (manualAuth && !hasAuthorization) {
       console.log("═══════════════════════════════════════════");
       console.log("🔐 AUTORIZAÇÃO MANUAL REQUERIDA");
       console.log("═══════════════════════════════════════════\n");
 
       await agent.authorize("tldv", "http://localhost:3000/auth/callback");
 
+      console.log("═══════════════════════════════════════════\n");
+    } else if (hasAuthorization) {
+      console.log("═══════════════════════════════════════════");
+      console.log("✅ AUTORIZAÇÃO JÁ EXISTENTE - USANDO SESSÃO SALVA");
       console.log("═══════════════════════════════════════════\n");
     }
 
