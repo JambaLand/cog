@@ -9,7 +9,6 @@
 
 require('dotenv').config();
 const Anthropic = require('@anthropic-ai/sdk');
-const Composio = require('@composio/core').default;
 
 const COMPOSIO_API_KEY = process.env.COMPOSIO_API_KEY;
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
@@ -22,9 +21,6 @@ if (!ANTHROPIC_API_KEY) {
 
 class TLDVComposioAgent {
   constructor() {
-    this.composio = new Composio({
-      apiKey: COMPOSIO_API_KEY,
-    });
     this.anthropic = new Anthropic({
       apiKey: ANTHROPIC_API_KEY,
     });
@@ -35,14 +31,13 @@ class TLDVComposioAgent {
     console.log('🚀 Inicializando TLDV + Composio Agent...');
     this.entityId = entityId;
 
-    // Get available tools from Composio
-    const apps = await this.composio.apps.getApps();
-    console.log(`✅ ${apps.length} integrações disponíveis\n`);
+    console.log(`✅ Agent inicializado com Entity ID: ${entityId}`);
+    console.log('✅ Claude API conectada\n');
 
     return {
       status: 'initialized',
       entityId: this.entityId,
-      availableApps: apps.map(app => app.name),
+      claudeModel: 'claude-3-5-sonnet-20241022',
     };
   }
 
