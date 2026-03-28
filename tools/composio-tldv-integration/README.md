@@ -28,34 +28,50 @@ npm install
 
 ### 2️⃣ Configurar Variáveis de Ambiente
 
-Copie o arquivo `.env.example` para `.env`:
-
-```bash
-cp .env.example .env
-```
-
-Edite `.env` e adicione sua chave API da Anthropic:
+O arquivo `.env` já contém as configurações necessárias:
 
 ```env
 COMPOSIO_API_KEY=ak_hzjAGv-K2CeVW5DSjQ5_
-ANTHROPIC_API_KEY=sua-chave-api-aqui
+ANTHROPIC_API_KEY=sk-ant-api03-...
+CALLBACK_URL=http://localhost:3000/auth/callback
 ```
 
-### 3️⃣ Executar Setup
+### 3️⃣ Executar Setup com Session
 
 ```bash
-npm run setup
+npm run setup <seu-user-id>
+```
+
+Exemplo:
+```bash
+npm run setup user-123
 ```
 
 O script vai:
-1. ✅ Inicializar Composio
-2. ✅ Criar uma sessão de autorização
-3. 🔗 Gerar um link de autorização TLDV
-4. 📱 Você clica no link e autoriza
-5. ✅ O script retoma e lista suas reuniões
-6. 📈 Pronto! TLDV está integrado
+1. ✅ Criar uma sessão Composio com `manageConnections: false`
+2. ✅ Chamar `session.authorize('tldv', { callbackUrl })`
+3. 🔗 Gerar um link de autorização OAuth para TLDV
+4. 📱 Você clica no link e autoriza sua conta TLDV
+5. ⏳ O script aguarda a confirmação (`waitForConnection`)
+6. ✅ Retorna `SESSION_ID` e `EXTERNAL_USER_ID`
+7. 📈 Pronto! Sua sessão TLDV está autorizada
 
-### 4️⃣ Usar a Integração
+### 4️⃣ Salvar IDs da Sessão
+
+Após o setup, você receberá:
+
+```bash
+export SESSION_ID=tldv-user-1774737191481
+export EXTERNAL_USER_ID=user-123
+```
+
+Adicione ao `.env`:
+```env
+SESSION_ID=tldv-user-1774737191481
+EXTERNAL_USER_ID=user-123
+```
+
+### 5️⃣ Usar a Integração
 
 ```bash
 npm start
@@ -63,13 +79,30 @@ npm start
 
 ## 📚 Exemplos de Uso
 
-### Listar Reuniões
+### Setup com Session (automático)
+
+```bash
+# Executar setup para criar uma sessão autorizada
+npm run setup meu-usuario-id
+
+# O script retorna SESSION_ID e EXTERNAL_USER_ID
+# Adicione ao .env e execute npm start
+```
+
+### Usar Agent com Session
 
 ```javascript
 const { TLDVComposioAgent } = require('./index.js');
 
 const agent = new TLDVComposioAgent();
-await agent.initialize('your-entity-id');
+
+// Inicializar com IDs da sessão
+const sessionId = process.env.SESSION_ID;
+const externalUserId = process.env.EXTERNAL_USER_ID;
+
+await agent.initialize(sessionId, externalUserId);
+
+// Listar reuniões (através da TLDV API via Composio)
 const meetings = await agent.listMeetings();
 ```
 
@@ -80,6 +113,35 @@ const response = await agent.chat('Resuma minhas últimas 3 reuniões');
 console.log(response);
 ```
 
+### Fluxo de Autorização Detalhado
+
+```javascript
+const { Composio } = require('@composio/core');
+
+const composio = new Composio({ apiKey: 'ak_...' });
+const externalUserId = 'user-123';
+
+// 1. Criar session COM manageConnections DESABILITADO
+const session = await composio.create(externalUserId, {
+  manageConnections: false
+});
+
+// 2. Solicitar autorização manualmente
+const connectionRequest = await session.authorize('tldv', {
+  callbackUrl: 'http://localhost:3000/auth/callback'
+});
+
+// 3. Redirecionar usuário para link de OAuth
+console.log(connectionRequest.redirectUrl); // → USER clica aqui
+
+// 4. Aguardar confirmação
+const connectedAccount = await connectionRequest.waitForConnection();
+console.log(`Connected: ${connectedAccount.id}`);
+
+// 5. Usar session para executar ações
+const result = await session.execute('tldv_list_meetings', { limit: 10 });
+```
+
 ### Casos de Uso
 
 1. **Resumos Automáticos**: Obtenha resumos de reuniões em linguagem natural
@@ -87,6 +149,7 @@ console.log(response);
 3. **Extração de Ações**: Extraia itens de ação e proprietários
 4. **Geração de Relatórios**: Crie relatórios executivos
 5. **Busca Inteligente**: Encontre reuniões por tema ou participante
+6. **Integração Multi-User**: Cada usuário tem sua própria session autorizada
 
 ## 🔧 Configuração Avançada
 
