@@ -29,14 +29,17 @@ class TLDVComposioAgent {
     this.externalUserId = externalUserId;
   }
 
-  async initialize(): Promise<void> {
+  async initialize(manageConnections: boolean = true): Promise<void> {
     console.log(`🚀 Inicializando TLDV + Composio Agent para ${this.externalUserId}...\n`);
 
     try {
-      // Create a tool router session
+      // Create a tool router session with manual connection management
       console.log("1️⃣  Criando sessão com Composio...");
-      this.session = await composio.create(this.externalUserId);
-      console.log(`✅ Sessão criada: ${this.session.id}\n`);
+      this.session = await composio.create(this.externalUserId, {
+        manageConnections: manageConnections,
+      });
+      console.log(`✅ Sessão criada: ${this.session.id}`);
+      console.log(`   Modo de conexão: ${manageConnections ? "Automático" : "Manual"}\n`);
 
       // Get tools from the session
       console.log("2️⃣  Buscando ferramentas disponíveis...");
@@ -55,6 +58,47 @@ class TLDVComposioAgent {
       console.log("✨ Agent pronto para usar!\n");
     } catch (error) {
       console.error("❌ Erro na inicialização:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Autorizar manualmente um serviço (Gmail, TLDV, etc.)
+   */
+  async authorize(
+    service: string,
+    callbackUrl: string = "http://localhost:3000/auth/callback",
+  ): Promise<void> {
+    if (!this.session) {
+      throw new Error("Session não inicializada. Execute initialize() primeiro.");
+    }
+
+    console.log(`\n🔐 Autorizando ${service}...\n`);
+
+    try {
+      // Solicitar autorização manual
+      console.log(`1️⃣  Solicitando autorização para ${service}...`);
+      const connectionRequest = await this.session.authorize(service, {
+        callbackUrl: callbackUrl,
+      });
+      console.log("✅ Requisição de autorização criada\n");
+
+      // Redirecionar usuário para OAuth flow
+      console.log(`2️⃣  Link de autorização OAuth:\n`);
+      const redirectUrl = connectionRequest.redirectUrl;
+      console.log(`🔗 ${redirectUrl}\n`);
+      console.log(`📱 Clique no link acima para autorizar ${service}`);
+      console.log(`🔄 Você será redirecionado para: ${callbackUrl}\n`);
+
+      // Aguardar confirmação da conexão
+      console.log(`3️⃣  Aguardando autorização (máximo 60 segundos)...\n`);
+      const connectedAccount = await connectionRequest.waitForConnection();
+
+      console.log(`✅ Conexão estabelecida com sucesso!`);
+      console.log(`   ID da conta conectada: ${connectedAccount.id}`);
+      console.log(`   Serviço: ${service}\n`);
+    } catch (error) {
+      console.error(`❌ Erro na autorização de ${service}:`, error);
       throw error;
     }
   }
@@ -160,11 +204,26 @@ async function main(): Promise<void> {
   console.log("╚════════════════════════════════════════╝\n");
 
   const externalUserId = process.env.EXTERNAL_USER_ID || `user-${Date.now()}`;
+  const manualAuth = process.env.MANUAL_AUTH === "true";
 
   try {
     // Initialize agent
     const agent = new TLDVComposioAgent(externalUserId);
-    await agent.initialize();
+
+    // Initialize with manual connection management
+    console.log(`📋 Modo de autorização: ${manualAuth ? "MANUAL" : "AUTOMÁTICO"}\n`);
+    await agent.initialize(manualAuth ? false : true);
+
+    // Se modo manual, pedir autorização do TLDV
+    if (manualAuth) {
+      console.log("═══════════════════════════════════════════");
+      console.log("🔐 AUTORIZAÇÃO MANUAL REQUERIDA");
+      console.log("═══════════════════════════════════════════\n");
+
+      await agent.authorize("tldv", "http://localhost:3000/auth/callback");
+
+      console.log("═══════════════════════════════════════════\n");
+    }
 
     // Demo commands
     console.log("📋 Executando demos...\n");
