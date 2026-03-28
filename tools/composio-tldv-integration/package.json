@@ -5,7 +5,10 @@
   "main": "configurar_tldv_composio.js",
   "scripts": {
     "setup": "node configurar_tldv_composio.js",
-    "start": "node index.js"
+    "start": "node index.js",
+    "start:ts": "ts-node index.ts",
+    "build": "tsc",
+    "dev": "ts-node index.ts"
   },
   "keywords": [
     "composio",
@@ -16,11 +19,16 @@
   "author": "Cog Team",
   "license": "Apache-2.0",
   "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.1.77",
     "@anthropic-ai/sdk": "^0.24.0",
+    "@composio/claude-agent-sdk": "^0.4.0",
     "@composio/core": "^0.4.0"
   },
   "devDependencies": {
-    "dotenv": "^16.3.1"
+    "@types/node": "^25.5.0",
+    "dotenv": "^16.3.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.2"
   },
   "engines": {
     "node": ">=18.0.0"
