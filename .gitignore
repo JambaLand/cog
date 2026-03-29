@@ -27,3 +27,6 @@ bin/*
 # Auto-generated version files from setuptools-scm
 python/cog/_version.py
 coglet/python/coglet/_version.py
+
+# Node.js dependencies
+node_modules/
