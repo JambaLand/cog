@@ -1,0 +1,18 @@
+{
+  "name": "cog-composio-integration",
+  "version": "1.0.0",
+  "description": "Cog with Composio and Claude Agent SDK integration",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": ["cog", "composio", "claude", "agent"],
+  "author": "Replicate",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@composio/core": "latest",
+    "@composio/claude-agent-sdk": "latest",
+    "@anthropic-ai/claude-agent-sdk": "latest"
+  }
+}
