@@ -58,6 +58,10 @@ test = [
     "pexpect",
 ]
 
+plugins = [
+    "composio",
+]
+
 [tool.setuptools_scm]
 write_to = "python/cog/_version.py"
 
