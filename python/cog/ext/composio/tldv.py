@@ -8,7 +8,7 @@ from .client import ComposioClient
 class TLDVIntegration:
     """Integration with TLDV (TL;DV) for meeting transcription and recording."""
 
-    TLDV_APP_NAME = "tldv"
+    TLDV_SLUG = "tldv"
 
     def __init__(
         self,
@@ -29,18 +29,18 @@ class TLDVIntegration:
     def _verify_tldv_available(self) -> None:
         """Verify that TLDV is available in Composio."""
         try:
-            available_apps = self.client.get_available_apps()
-            if self.TLDV_APP_NAME not in available_apps:
+            app_slug = self.client.get_app_slug("TLDV")
+            if not app_slug:
                 raise RuntimeError(
-                    f"TLDV is not available in Composio. "
-                    f"Available apps: {', '.join(available_apps[:10])}..."
+                    "TLDV is not available in your Composio account. "
+                    "Please check your account at platform.composio.dev"
                 )
         except Exception as e:
             raise RuntimeError(f"Failed to verify TLDV availability: {e}")
 
     def get_available_actions(self) -> list[str]:
         """Get available TLDV actions."""
-        return self.client.get_app_actions(self.TLDV_APP_NAME)
+        return self.client.get_app_tools(self.TLDV_SLUG)
 
     def authenticate(self, credentials: Dict[str, str]) -> Dict[str, Any]:
         """
@@ -52,7 +52,7 @@ class TLDVIntegration:
         Returns:
             Authentication response.
         """
-        return self.client.authenticate_app(self.TLDV_APP_NAME, credentials)
+        return self.client.authenticate_app(self.TLDV_SLUG, credentials)
 
     def get_recordings(self, **params: Any) -> Dict[str, Any]:
         """
@@ -65,7 +65,7 @@ class TLDVIntegration:
             List of recordings.
         """
         return self.client.execute_action(
-            self.TLDV_APP_NAME, "get_recordings", params
+            self.TLDV_SLUG, "get_recordings", params
         )
 
     def get_transcript(
@@ -83,7 +83,7 @@ class TLDVIntegration:
         """
         params["recording_id"] = recording_id
         return self.client.execute_action(
-            self.TLDV_APP_NAME, "get_transcript", params
+            self.TLDV_SLUG, "get_transcript", params
         )
 
     def get_summary(self, recording_id: str, **params: Any) -> Dict[str, Any]:
@@ -99,7 +99,7 @@ class TLDVIntegration:
         """
         params["recording_id"] = recording_id
         return self.client.execute_action(
-            self.TLDV_APP_NAME, "get_summary", params
+            self.TLDV_SLUG, "get_summary", params
         )
 
     def get_meeting_details(
@@ -117,7 +117,7 @@ class TLDVIntegration:
         """
         params["recording_id"] = recording_id
         return self.client.execute_action(
-            self.TLDV_APP_NAME, "get_meeting_details", params
+            self.TLDV_SLUG, "get_meeting_details", params
         )
 
     def create_action_items(
@@ -135,7 +135,7 @@ class TLDVIntegration:
         """
         params["recording_id"] = recording_id
         return self.client.execute_action(
-            self.TLDV_APP_NAME, "create_action_items", params
+            self.TLDV_SLUG, "create_action_items", params
         )
 
     def share_recording(
@@ -155,5 +155,5 @@ class TLDVIntegration:
         params["recording_id"] = recording_id
         params["email"] = email
         return self.client.execute_action(
-            self.TLDV_APP_NAME, "share_recording", params
+            self.TLDV_SLUG, "share_recording", params
         )

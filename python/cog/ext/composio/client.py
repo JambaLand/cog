@@ -52,65 +52,95 @@ class ComposioClient:
     def get_available_apps(self) -> list[str]:
         """Get list of available apps from Composio."""
         try:
-            apps = self.client.get_apps()
-            return [app.name for app in apps]
+            toolkits_response = self.client.toolkits.list()
+            return [toolkit.name for toolkit in toolkits_response.items]
         except Exception as e:
             raise RuntimeError(f"Failed to fetch available apps: {e}")
 
+    def get_app_slug(self, app_name: str) -> Optional[str]:
+        """
+        Get the slug for an app by name.
+
+        Args:
+            app_name: Name of the app (e.g., "TLDV" or "tldv").
+
+        Returns:
+            The slug for the app, or None if not found.
+        """
+        try:
+            toolkits_response = self.client.toolkits.list()
+            app_name_lower = app_name.lower()
+            for toolkit in toolkits_response.items:
+                if (
+                    toolkit.name.lower() == app_name_lower
+                    or toolkit.slug.lower() == app_name_lower
+                ):
+                    return toolkit.slug
+            return None
+        except Exception as e:
+            raise RuntimeError(f"Failed to fetch app slug for {app_name}: {e}")
+
+    def get_app_tools(self, app_slug: str) -> list[str]:
+        """
+        Get available tools/actions for a specific app.
+
+        Args:
+            app_slug: Slug of the app (e.g., "tldv").
+
+        Returns:
+            List of available tool names.
+        """
+        try:
+            tools = self.client.tools.get_raw_composio_tools(
+                toolkits=[app_slug]
+            )
+            return [tool.name for tool in tools]
+        except Exception as e:
+            raise RuntimeError(f"Failed to fetch tools for {app_slug}: {e}")
+
     def authenticate_app(
-        self, app_name: str, credentials: Dict[str, str]
+        self, app_slug: str, credentials: Dict[str, str]
     ) -> Dict[str, Any]:
         """
         Authenticate with a specific app.
 
         Args:
-            app_name: Name of the app to authenticate with.
+            app_slug: Slug of the app (e.g., "tldv").
             credentials: Credentials for the app.
 
         Returns:
             Authentication response.
         """
         try:
-            response = self.client.authenticate_app(app_name, credentials)
-            return response
+            response = self.client.toolkits.authorize(
+                app_slug, request_data=credentials
+            )
+            return response.model_dump() if hasattr(response, "model_dump") else response
         except Exception as e:
-            raise RuntimeError(f"Failed to authenticate with {app_name}: {e}")
+            raise RuntimeError(f"Failed to authenticate with {app_slug}: {e}")
 
     def execute_action(
-        self, app_name: str, action: str, params: Dict[str, Any]
+        self, app_slug: str, action_name: str, params: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
         Execute an action in a specific app.
 
         Args:
-            app_name: Name of the app.
-            action: Name of the action to execute.
+            app_slug: Slug of the app (e.g., "tldv").
+            action_name: Name of the action to execute.
             params: Parameters for the action.
 
         Returns:
             Action execution response.
         """
         try:
-            response = self.client.execute_action(app_name, action, params)
-            return response
+            # Get the tool by slug and action name
+            action_id = f"{app_slug}.{action_name}"
+            result = self.client.tools.execute(
+                action=action_id, params=params
+            )
+            return result
         except Exception as e:
             raise RuntimeError(
-                f"Failed to execute action {action} on {app_name}: {e}"
+                f"Failed to execute action {action_name} on {app_slug}: {e}"
             )
-
-    def get_app_actions(self, app_name: str) -> list[str]:
-        """
-        Get available actions for a specific app.
-
-        Args:
-            app_name: Name of the app.
-
-        Returns:
-            List of available actions.
-        """
-        try:
-            app = self.client.get_app(app_name)
-            actions = app.get_actions()
-            return [action.name for action in actions]
-        except Exception as e:
-            raise RuntimeError(f"Failed to fetch actions for {app_name}: {e}")
