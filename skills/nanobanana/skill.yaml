@@ -1,0 +1,39 @@
+name: nanobanana
+description: Generate and edit images using Google Gemini 3 Pro Image (Nano Banana Pro). Supports text-to-image, image editing, various aspect ratios, and high-resolution output (2K/4K).
+
+triggers:
+  - "generate image"
+  - "create image"
+  - "nano banana"
+  - "nanobanana"
+  - "gemini image"
+  - "AI image"
+  - "image generation"
+
+commands:
+  - name: generate
+    description: Generate images from text prompts
+    script: scripts/generate.py
+    help_text: |
+      Generate images using AI.
+      Usage: python scripts/generate.py "your prompt" -o output.png
+
+  - name: batch
+    description: Generate multiple images with variations
+    script: scripts/batch_generate.py
+    help_text: |
+      Generate multiple images in batch.
+      Usage: python scripts/batch_generate.py "your prompt" -n 10 -d ./output
+
+requirements:
+  - google-genai
+  - pillow
+
+environment:
+  - GEMINI_API_KEY
+
+metadata:
+  version: 1.0
+  author: Anthropic
+  license: Apache 2.0
+  category: image-generation
